@@ -493,6 +493,7 @@ class ICal
 
         $date_array = $event[$key . '_array'];
         $date       = $event[$key];
+        $timestamp = false;
 
         if (isset($date_array[0]['TZID']) && preg_match('/[a-z]*\/[a-z_]*/i', $date_array[0]['TZID'])) {
             $timeZone = $date_array[0]['TZID'];
@@ -503,7 +504,17 @@ class ICal
             $timeZone = $defaultTimeZone;
         }
 
-        $dateTime = new \DateTime($event[$key]);
+        // Check date array for a timestamp to make conversion not throw an exception on weird inputs
+        foreach ( $date_array as $date ) {
+            if ( is_numeric($date) ) {
+                $dateTime = new \DateTime('@'.$date);
+                $timestamp = true;
+            }
+        }
+        
+        if ( $timestamp == false ) {
+            $dateTime = new \DateTime($event[$key]);
+        }
 
         if (substr($date, -1) === 'Z') {
             $date = substr($date, 0, -1);
